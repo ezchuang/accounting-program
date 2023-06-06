@@ -49,7 +49,7 @@ account = bill.split()
 # 將此 input 分成 月份 與 項目+金額
 header, body = account[0], account[1:]
 # print(header)
-# print(body)
+print(body)
 
 # re()的其他函式要用的判斷模式(pattern)
 patt = re.compile(r"[\.\,]")
