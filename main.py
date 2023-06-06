@@ -40,92 +40,10 @@ bill='''
 15.地铁+公交,-400
 '''
 
-
-import re
-import math
-account = bill.split()
-# print(account)
-
-# 將此 input 分成 月份 與 項目+金額
-header, body = account[0], account[1:]
-# print(header)
-# print(body)
-
-# re()的其他函式要用的判斷模式(pattern)
-patt = re.compile(r"[\.\,]")
-# print(patt)
-
-# 分出正負 data，因應 patt 的設計->["1."(被[1:]消除), "伙食费", "-2000"]
-expend = [re.split(patt, e)[1:] for e in body if "-" in e]
-income = [re.split(patt, e)[1:] for e in body if "+" in e]
-# print(expend)
-# print(income)
-
-# 利用 math.fabs() 將str數值轉換成 int 再轉成 float
-expend_data = [ [ e[0], math.fabs( int(e[1]) ) ] for e in expend ]
-income_data = [ [ e[0], math.fabs( int(e[1]) ) ] for e in income ]
-# print(expend_data)
-# print(income_data)
-
-# 總計
-income_money = [e[1] for e in income_data]
-# print("收入", income_money, sum(income_money))
-
-outcome_money = [e[1] for e in expend_data]
-# print("支出", outcome_money, sum(outcome_money))
-
-remain = [re.split(patt, e)[1:][1] for e in body]
-remain = [int(e) for e in remain]
-# print("結餘", sum(remain))
-
-from pyecharts import options as opts
-from pyecharts.charts import Pie
-
-# 支出
-def pie_base():
-    c = (
-        Pie()
-        .add(
-            "", 
-            expend_data, 
-            radius=["70%", "80%"],
-            center=["50%", "50%"],
-            rosetype = "radius",
-        )
-        .set_global_opts(
-            title_opts = opts.TitleOpts(title = header + "支出"),
-            legend_opts = opts.LegendOpts(
-                type_ = "scroll",
-                pos_left = "85%",
-                orient = "vertical",
-            ),
-        )
-        .set_series_opts(
-            label_opts = opts.LabelOpts(formatter = "{b}: {c}")
-        )
-    )
-    return c
-
-pie_base().render("支出.html")
-
-# 收入
-def pie_base():
-    c = (
-        Pie()
-        .add(
-            "", 
-            expend_data, radius=["30%", "65%"],
-            center=["50%", "50%"],
-            rosetype = "radius",
-        )
-        .set_global_opts(
-            title_opts = opts.TitleOpts(title = header + "收入"),
-            legend_opts = opts.LegendOpts(pos_left = "15%"),
-        )
-        .set_series_opts(
-            label_opts = opts.LabelOpts(formatter = "{b}: {c}")
-        )
-    )
-    return c
-
-pie_base().render("收入.html")
+import pandas as pd
+df = pd.read_csv('每月_160547_101_投信投顧公會境內基金配息資料.csv')
+# df = pd.read_csv('Accounting information.csv')
+# print("df.info()")
+# df.info()
+print("df.describe()")
+df.describe()
