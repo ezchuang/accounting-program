@@ -2,13 +2,13 @@
 title: accounting program
 
 input:
-    name: str
-    main_ctgr: str | enum(int)
-    sub_ctgr: str | enum(int)
-    tag: str
-    desc: str
-    amount: int
-    date: datetime.Datetime
+    1. name: str
+    2. main_ctgr: str | enum(int)
+    3. sub_ctgr: str | enum(int)
+    4. tag: str
+    5. desc: str
+    6. amount: int
+    7. date: datetime.Datetime
 
 example:
     name: "elden ring"
@@ -20,30 +20,21 @@ example:
     date: 2022/03/29
 """
 
-
-bill='''
-账单:6月
-1.伙食费,-2000
-2.零花钱,-500
-3.房租,-3000
-4.衣服,-1000
-5.工资,+10000
-6.理财,+800
-7.朋友聚餐,-500
-8.买衣服,-500
-9.水电费,-100
-10.油费,-300
-11.全勤奖,+1000
-12.货币基金,+600
-13.手机费,-100
-14.水果,-300
-15.地铁+公交,-400
-'''
-
+import datetime
 import pandas as pd
-df = pd.read_csv('每月_160547_101_投信投顧公會境內基金配息資料.csv')
-# df = pd.read_csv('Accounting information.csv')
-# print("df.info()")
-# df.info()
-print("df.describe()")
-df.describe()
+import numpy as np
+data = pd.read_csv('記帳程式用 - 範例.csv')
+data = data.fillna("na") # 填充字元
+data = data.applymap(lambda x: x.lower() if isinstance(x, str) else x) # 轉小寫
+data["amount"] = data["amount"].apply(lambda x: 0 if x=="na" else x) # amount 空格 賦予 0
+data["date"] = data["date"].apply(lambda x: datetime.date.today() if x=="na" else x) # date 空格 賦予 今日
+"""
+為什麼不能這樣寫?
+for i in data:
+    print(i)
+    data = data[i].str.lower()
+"""
+
+
+# print(df)
+print(data.to_csv("記帳程式用 - 紀錄.csv"))
