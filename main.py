@@ -30,31 +30,77 @@ def reformat_date(date_str):
     date_parts = re.split(patt_for_date, date_str)
     return "/".join(date_parts)
 
-# 資料整理
-data = pd.read_csv('記帳程式用 - 範例.csv')
-data = data.fillna("na") # 填充字元
-data = data.applymap(lambda x: x.lower() if isinstance(x, str) else x) # 轉小寫
-data["amount"] = data["amount"].apply(lambda x: 0 if x=="na" else x) # amount 空格 賦予 0
-data["date"] = data["date"].apply(lambda x: str( datetime.date.today() ) if x=="na" else  reformat_date(x)) # date 空格 賦予 今日
+# csv 資料整理
+def data_clean_up(path):
+    data = pd.read_csv(path)
+    data = data.fillna("na") # 填充字元
+    data = data.applymap(lambda x: x.lower() if isinstance(x, str) else x) # 轉小寫
+    data["amount"] = data["amount"].apply(lambda x: 0 if x=="na" else x) # amount 空格 賦予 0
+    data["date"] = data["date"].apply(lambda x: str( datetime.date.today() ) if x=="na" else reformat_date(x)) # date 空格 賦予 今日
+    data.sort_values(by = ["date", "main_ctgr", "sub_ctgr"], inplace = True) # 針對日期排序
+    
+    return data
+    # print(df)
 
-data.sort_values(by = ["date", "main_ctgr", "sub_ctgr"], inplace = True) # 針對日期排序
-"""
-為什麼不能這樣寫?
-for i in data:
-    print(i)
-    data = data[i].str.lower()
-"""
-# print(df)
-data.to_csv("記帳程式用 - 紀錄.csv", index = False)
+    """
+    修改大小寫，為什麼不能這樣寫?
+    for i in data:
+        print(i)
+        data = data[i].str.lower()
+    """
 
-import os
 
-def open_file_with_vscode(file_path):
-    try:
-        os.system(file_path)
-    except FileNotFoundError:
-        print("无法找到VSCode安装路径，请确保已正确安装VSCode。")
+input_mode_select, output_mode_select = "", ""
 
-# 用法示例
-file_path = 'G:\Files\code\GitHub\accounting\記帳程式用 - 紀錄.csv'
-open_file_with_vscode(file_path)
+while True:
+    # input_mode_select = input(
+    #     "csv批次輸入 請輸入 0\n單筆資料輸入 請輸入 1\n輸入請選擇模式: "
+    #     )
+    # output_mode_select = input(
+    #     "建立新的帳務檔案 請輸入 0\n新增資料到既有檔案 請輸入 1 (請確保既有檔案有放入此資料夾中，並將其命名為 \"記帳程式用-紀錄\")\n輸出請選擇模式: "
+    #     )
+    # 測試用
+    input_mode_select="0"
+    output_mode_select="0"
+
+    if (input_mode_select == "0" or input_mode_select == "1") or\
+        (output_mode_select == "0" or output_mode_select == "1"):
+        break
+    print("模式選擇異常")
+
+# 輸入模式切換
+if input_mode_select == "0": # input csv
+    print("請將目標csv檔案與本程式放置於相同資料夾中")
+    # path = input("請輸入csv檔案名稱: ")
+    # 測試用
+    path = "記帳程式用 - 範例"
+    input_mode_select="0"
+    output_mode_select="0"
+    if ".csv" not in path:
+        path += ".csv"
+    data = data_clean_up(path)
+else: # 個別資料 input
+    print("尚未完成，完成期限遙遙無期")
+
+# 輸出模式切換
+if output_mode_select == "0": # 建立新檔案
+    data.to_csv("記帳程式用-紀錄.csv", index = False)
+    print("\033[92m" + "完成" + "\033[0m")
+    print("\033[92m" + "新帳務檔案檔名為: 記帳程式用-紀錄.csv" + "\033[0m")
+else: # 修改舊檔案
+    print("尚未完成")
+
+
+
+# 寫不出來，想要於完成後呼叫其他程式打開該檔案
+# import subprocess
+
+# def open_file_with_vscode(file_path):
+#     try:
+#         subprocess.Popen(['code', file_path])
+#     except FileNotFoundError:
+#         print("无法找到VSCode安装路径，请确保已正确安装VSCode。")
+
+# # 用法示例
+# file_path = 'G:\Files\code\GitHub\accounting\記帳程式用 - 紀錄.csv'
+# open_file_with_vscode(file_path)
