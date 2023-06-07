@@ -23,7 +23,7 @@ example:
 import re
 import datetime
 import pandas as pd
-# import numpy as np
+import numpy as np
 import sys
 
 import colorama
@@ -134,6 +134,9 @@ while True:
                             "結束程序請輸入 5\n" +
                             "請輸入您的選擇: " +
                             Style.RESET_ALL)
+    # 測試用
+    # select_which_data = "0"
+
     items_dict = {
         "0" : "name",
         "1" : "main_ctgr",
@@ -148,19 +151,30 @@ while True:
         "3" : "Tag",
         "4" : "Date",
     }
-    if select_which_data in items_dict:
-        select_show_data_mode = input(Fore.YELLOW + Style.BRIGHT + "圖表顯示請輸入 0\n顯示於本程式內請輸入 1\n請輸入您的選擇(會依總金額排序): " + Style.RESET_ALL)
-    elif select_which_data == "5":
-        sys.exit(Fore.GREEN + "程式結束" + Style.RESET_ALL)
-    else:
-        print(Fore.RED + Style.BRIGHT + "輸入異常" + Style.RESET_ALL)
 
+    # 選擇想要比較的資料
+    if select_which_data in items_dict: # 選擇需要的項目
+        select_show_data_mode = input(Fore.YELLOW + Style.BRIGHT + "圖表顯示請輸入 0\n顯示於本程式內請輸入 1\n請輸入您的選擇(會依總金額排序): " + Style.RESET_ALL)
+        # 測試用
+        # select_show_data_mode = "0"
+    elif select_which_data == "5": # 結束程式
+        sys.exit(Fore.GREEN + "程式結束" + Style.RESET_ALL)
+    else: # 異常輸入
+        print(Fore.RED + Style.BRIGHT + "輸入異常" + Style.RESET_ALL)
+        continue
+
+    # 針對需要的項目排序
+    data_for_opt = data[ [items_dict[select_which_data], "amount"] ].sort_values(by = ["amount"], inplace = False, ascending = False)
+    print(data_for_opt)
+    # 針對想要的模式輸出
     if select_show_data_mode == "0": # 呼叫副程式 opt_to_chart 將指定的 data 轉成 Pie
         import opt_to_chart
-        opt_to_chart.pie_base(data[ items_dict[select_which_data], header_dict[3] ], items_dict[select_which_data])
-    else:
-        print(data[ items_dict[select_which_data], items_dict[3] ]) # 尚未實驗過是否可行
-
+        opt_to_chart.pie_base( data_for_opt.to_numpy(), items_dict[select_which_data] )
+        print(Fore.GREEN + "完成" + Style.RESET_ALL)
+    elif select_show_data_mode == "1": # 程式內輸出
+        print(data_for_opt) # 尚未實驗過是否可行
+    else: # 異常輸入
+        print(Fore.RED + Style.BRIGHT + "輸入異常" + Style.RESET_ALL)
 
 
 

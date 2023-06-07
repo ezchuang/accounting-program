@@ -48,7 +48,7 @@ account = bill.split()
 
 # 將此 input 分成 月份 與 項目+金額
 header, body = account[0], account[1:]
-# print(header)
+print(header)
 print(body)
 
 # re()的其他函式要用的判斷模式(pattern)
@@ -64,7 +64,7 @@ income = [re.split(patt, e)[1:] for e in body if "+" in e]
 # 利用 math.fabs() 將str數值轉換成 int 再轉成 float
 expend_data = [ [ e[0], math.fabs( int(e[1]) ) ] for e in expend ]
 income_data = [ [ e[0], math.fabs( int(e[1]) ) ] for e in income ]
-# print(expend_data)
+print(expend_data)
 # print(income_data)
 
 # 總計
