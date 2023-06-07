@@ -1,0 +1,14 @@
+name,main_ctgr,sub_ctgr,tag,desc,amount,date
+rent,rent or mortgage,rent,na,na,1500.0,2022/3/15
+fuel,transportation,motor,fuel,na,0.0,2022/3/18
+doctor's consultation fee,na,medical expenses,na,na,50.0,2022/3/20
+fuel,transportation,car,fuel,na,50.0,2022/3/20
+fuel,transportation,car,fuel,na,0.0,2022/3/21
+maintenance,transportation,car,maintenance,change engine,10000.0,2022/3/21
+fuel,transportation,car,fuel,na,0.0,2022/3/21
+fuel,transportation,car,fuel,na,0.0,2022/3/21
+fuel,transportation,motor,fuel,na,0.0,2022/3/21
+elden ring,entertainment,game,steam,123,1290.0,2022/3/29
+restaurant,food and drinks,dinner,takeout,na,40.0,2022/3/30
+fuel,transportation,car,fuel,na,0.0,2022/3/5
+fuel,transportation,car,fuel,na,1200.0,2023-06-07

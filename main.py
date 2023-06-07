@@ -74,8 +74,7 @@ if input_mode_select == "0": # input csv
     # path = input("請輸入csv檔案名稱: ")
     # 測試用
     path = "記帳程式用 - 範例"
-    input_mode_select="0"
-    output_mode_select="0"
+
     if ".csv" not in path:
         path += ".csv"
     data = data_clean_up(path)
@@ -88,7 +87,19 @@ if output_mode_select == "0": # 建立新檔案
     print("\033[92m" + "完成" + "\033[0m")
     print("\033[92m" + "新帳務檔案檔名為: 記帳程式用-紀錄.csv" + "\033[0m")
 else: # 修改舊檔案
+    path_be_modify = input("請輸入欲修改的檔案: ")
+    with open(path_be_modify, mode = "a") as path_tmp:
+        print("檔案不存在，自動新建")
+        """
+        mode = "a"，可用於 .to_csv() 中，此 arg 會同 open() 的設定方式，"a" 表示加在檔案內資料的後面
+
+        .tell()，會 return 指向之記憶體位置，"==0" 表 path_tmp 為空或不存在，則需加入 header
+        """
+        data.to_csv(path_tmp, header = (path_tmp.tell() == 0), index = False)
     print("尚未完成")
+
+# 呼叫資料
+# if 
 
 
 
