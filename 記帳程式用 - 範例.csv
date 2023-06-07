@@ -1,14 +1,14 @@
 name,main_ctgr,sub_ctgr,tag,desc,amount,date
 elden ring,entertainment,game,steam,123,1290,2022/3/29
 restaurant,Food and Drinks,dinner,Takeout,,40,2022/3/30
-Rent,Rent or Mortgage,Rent,,,1500,2022/3/15
+Rent,Rent or Mortgage,Rent,haha,,1500,2022/3/15
 fuel,Transportation,car,fuel,,50,2022/3/20
 fuel,Transportation,car,fuel,,1200,
 fuel,Transportation,car,fuel,,,2022/3/21
 maintenance,Transportation,car,maintenance,change engine,10000,2022/3/21
-Doctor's Consultation Fee,,Medical Expenses,,,50,2022/3/20
+Doctor's Consultation Fee,,Medical Expenses,haha,,50,2022/3/20
 fuel,Transportation,motor,fuel,,1000,2022/3/21
 fuel,Transportation,car,fuel,,100,2022/3/5
 fuel,Transportation,car,fuel,,1500,2022/3/21
 fuel,Transportation,motor,fuel,,99,2022/3/18
-fuel,Transportation,car,fuel,,20,2022/3/21
+fuel,,car,fuel,,20,2022/3/21

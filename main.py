@@ -49,15 +49,21 @@ colorama.init()
 def reformat_date(date_str):
     patt_for_date = re.compile(r"[\/\.\-\,]")
     date_parts = re.split(patt_for_date, date_str)
-    return "/".join(date_parts)
+    return "/".join(date_parts) # 2023/06/08
+    # 沒處理到 -> 20230608
 
 # csv 資料整理
 def data_clean_up(path):
     data = pd.read_csv(path)
-    data = data.fillna("na") # 填充字元
-    data = data.applymap(lambda x: x.lower() if isinstance(x, str) else x) # 轉小寫
-    data["amount"] = data["amount"].apply(lambda x: 0 if x=="na" else x) # amount 空格 賦予 0
-    data["date"] = data["date"].apply(lambda x: str( datetime.date.today() ) if x=="na" else reformat_date(x)) # date 空格 賦予 今日
+
+# df可以只輸出不是NAN的東西
+
+    # data = data.fillna("na") # 填充字元
+    # numpy.NaN 處理 <- 調查一下
+    # data = data.applymap(lambda x: x.lower() if isinstance(x, str) else x) # 轉小寫
+    # 判斷時用s.lower()做比較
+    # data["amount"] = data["amount"].apply(lambda x: 0 if x=="na" else x) # amount 空格 賦予 0
+    # data["date"] = data["date"].apply(lambda x: str( datetime.date.today() ) if x=="na" else reformat_date(x)) # date 空格 賦予 今日
     data.sort_values(by = ["date", "main_ctgr", "sub_ctgr"], inplace = True) # 針對日期排序
     
     return data
@@ -71,17 +77,17 @@ def data_clean_up(path):
 
 select_ipt_mode, select_opt_mode = "", ""
 while True:
-    # select_ipt_mode = input(
-    #     Fore.YELLOW + Style.BRIGHT + "csv批次輸入 請輸入 0\n單筆資料輸入 請輸入 1\n輸入請選擇模式: " + Style.RESET_ALL
-    #     )
-    # select_opt_mode = input(
-    #     Fore.YELLOW + Style.BRIGHT + "建立新的帳務檔案 請輸入 0\n新增資料到既有檔案 請輸入 1 (請確保既有檔案有放入此資料夾中，並將其命名為 \"記帳程式用-紀錄\")\n輸出請選擇模式: " + Style.RESET_ALL
-    #     )
+    select_ipt_mode = input(
+        Fore.YELLOW + Style.BRIGHT + "csv批次輸入 請輸入 0\n單筆資料輸入 請輸入 1\n輸入請選擇模式: " + Style.RESET_ALL
+        )
+    select_opt_mode = input(
+        Fore.YELLOW + Style.BRIGHT + "建立新的帳務檔案 請輸入 0\n新增資料到既有檔案 請輸入 1 (請確保既有檔案有放入此資料夾中，並將其命名為 \"記帳程式用-紀錄\")\n輸出請選擇模式: " + Style.RESET_ALL
+        )
     # 測試用
-    select_ipt_mode="0"
-    select_opt_mode="0"
+    # select_ipt_mode="0"
+    # select_opt_mode="0"
 
-    if (select_ipt_mode == "0" or select_ipt_mode == "1") or\
+    if (select_ipt_mode == "0" or select_ipt_mode == "1") and\
         (select_opt_mode == "0" or select_opt_mode == "1"):
         break
     print("模式選擇異常")
@@ -89,12 +95,13 @@ while True:
 # 輸入模式切換
 if select_ipt_mode == "0": # input csv
     print(Fore.RED + Style.BRIGHT + "請將目標csv檔案與本程式放置於相同資料夾中" + Style.RESET_ALL)
-    # path = input(Fore.YELLOW + Style.BRIGHT + "請輸入csv檔案名稱: " + Style.RESET_ALL)
+    path = input(Fore.YELLOW + Style.BRIGHT + "請輸入csv檔案名稱: " + Style.RESET_ALL)
     # 測試用
-    path = "記帳程式用 - 範例"
+    # path = "記帳程式用 - 範例"
 
     if ".csv" not in path:
         path += ".csv"
+         
     data = data_clean_up(path)
 else: # 個別資料 input
     print("尚未完成，完成期限遙遙無期")
@@ -165,13 +172,14 @@ while True:
 
     # 針對需要的項目排序
     data_for_opt = data[ [items_dict[select_which_data], "amount"] ].sort_values(by = ["amount"], inplace = False, ascending = False)
-    print(data_for_opt)
+
     # 針對想要的模式輸出
     if select_show_data_mode == "0": # 呼叫副程式 opt_to_chart 將指定的 data 轉成 Pie
         import opt_to_chart
         opt_to_chart.pie_base( data_for_opt.to_numpy(), items_dict[select_which_data] )
         print(Fore.GREEN + "完成" + Style.RESET_ALL)
     elif select_show_data_mode == "1": # 程式內輸出
+# 記得處理調index
         print(data_for_opt) # 尚未實驗過是否可行
     else: # 異常輸入
         print(Fore.RED + Style.BRIGHT + "輸入異常" + Style.RESET_ALL)
