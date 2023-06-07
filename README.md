@@ -1,9 +1,11 @@
 # accounting
  
 """
+
 title: accounting program
 
 input:
+
     name: str
     main_ctgr: str | enum(int)
     sub_ctgr: str | enum(int)
@@ -13,6 +15,7 @@ input:
     date: datetime.Datetime
 
 example:
+
     name: "elden ring"
     main_ctgr: "entertainment"
     sub_ctgr: "game"
@@ -20,4 +23,5 @@ example:
     desc: str
     amount: 1290
     date: 2022/03/29
+
 """
