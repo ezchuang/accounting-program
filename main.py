@@ -43,6 +43,8 @@ from colorama import Style
 RGB mode: ESC[38;2;{r};{g};{b}m
 256 colors mode: ESC[38;5;{ID}m
 """
+
+import opt_to_chart
 colorama.init()
 
 # 將 date 格式統一
@@ -64,16 +66,10 @@ def data_clean_up(path):
     # 判斷時用s.lower()做比較
     # data["amount"] = data["amount"].apply(lambda x: 0 if x=="na" else x) # amount 空格 賦予 0
     # data["date"] = data["date"].apply(lambda x: str( datetime.date.today() ) if x=="na" else reformat_date(x)) # date 空格 賦予 今日
+# 日期不要賦予今日
     data.sort_values(by = ["date", "main_ctgr", "sub_ctgr"], inplace = True) # 針對日期排序
     
     return data
-    """
-    修改大小寫，為什麼不能這樣寫?
-    for i in data:
-        print(i)
-        data = data[i].str.lower()
-    """
-
 
 select_ipt_mode, select_opt_mode = "", ""
 while True:
@@ -101,7 +97,7 @@ if select_ipt_mode == "0": # input csv
 
     if ".csv" not in path:
         path += ".csv"
-         
+
     data = data_clean_up(path)
 else: # 個別資料 input
     print("尚未完成，完成期限遙遙無期")
@@ -116,7 +112,7 @@ else: # 修改舊檔案
     1. mode = "a"，可用於 .to_csv() 中，此 arg 會同 open() 的設定方式，"a" 表示加在檔案內資料的後面
     2. .tell()，會 return 指向之記憶體位置，"==0" 表 path_tmp 為空或不存在，則需加入 header
     """
-    path_be_modify = input("請輸入欲修改的檔案: ")
+    path_be_modify = input("請輸入欲修改的檔案: ")+".csv"
     with open(path_be_modify, "a") as path_tmp:
         if path_tmp.tell() == 0:
             print(Fore.RED + Style.BRIGHT + "檔案不存在，自動新建" + Style.RESET_ALL)
@@ -171,12 +167,12 @@ while True:
         continue
 
     # 針對需要的項目排序
+# items_dict[select_which_data] <- 太長，多用一個變數
     data_for_opt = data[ [items_dict[select_which_data], "amount"] ].sort_values(by = ["amount"], inplace = False, ascending = False)
 
     # 針對想要的模式輸出
     if select_show_data_mode == "0": # 呼叫副程式 opt_to_chart 將指定的 data 轉成 Pie
-        import opt_to_chart
-        opt_to_chart.pie_base( data_for_opt.to_numpy(), items_dict[select_which_data] )
+        opt_to_chart.pie_base( data_for_opt.to_numpy(), header_dict[select_which_data] )
         print(Fore.GREEN + "完成" + Style.RESET_ALL)
     elif select_show_data_mode == "1": # 程式內輸出
 # 記得處理調index
