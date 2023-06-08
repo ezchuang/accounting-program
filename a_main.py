@@ -104,6 +104,8 @@ if select_ipt_mode == "0": # input csv
     if ".csv" not in path_ipt:
         path_ipt += ".csv"
     # csv 資料整理
+    if path_ipt.tell() == 0:
+        sys.exit(Fore.RED + Style.BRIGHT + "輸入異常" + Style.RESET_ALL)
     data = b_data_clean_up.data_clean_up(path_ipt)
 else: # 個別資料 input
     data = b_data_clean_up.data_input_func()
@@ -112,12 +114,15 @@ while True:
     # 輸出 選項選擇
     select_opt_mode = input(
         Fore.YELLOW + 
-        "建立新的帳務檔案 請輸入 0\n新增資料到既有檔案 請輸入 1 (請確保既有檔案有放入此資料夾中)\n" + 
+        "建立新的帳務檔案 請輸入 0\n" + 
+        "新增資料到既有檔案 請輸入 1\n" + 
+        "不另行儲存，只調取資料 請輸入 2\n" + 
+        "(請確保既有檔案有放入此資料夾中)\n" + 
         Fore.CYAN + Style.BRIGHT +
         "請選擇 輸出 模式: " + 
         Style.RESET_ALL
         )
-    if select_opt_mode not in ["0", "1"]:
+    if select_opt_mode not in ["0", "1", "2"]:
         print(Fore.RED + Style.BRIGHT + "模式選擇異常" + Style.RESET_ALL)
         continue
     break
@@ -137,7 +142,7 @@ if select_opt_mode == "0":
     print(Fore.GREEN + "完成" + Style.RESET_ALL)
     print(Fore.BLUE + Style.BRIGHT + "新帳務檔案檔名為: " + path_opt_new + Style.RESET_ALL)
 # 修改舊檔案
-else:
+elif select_opt_mode ==1:
     path_be_modify = input(Fore.CYAN + Style.BRIGHT + "請輸入欲修改的檔案: " + Style.RESET_ALL)
     # 測試用
     # path_be_modify = "記帳程式用-紀錄"
@@ -175,10 +180,14 @@ else:
 
 
 # 呼叫資料
-select_show_data = input(Fore.CYAN + Style.BRIGHT + "是否需要調取資料(是請按 0，否請按 1): " + Style.RESET_ALL)
+# 跳過詢問
+if select_opt_mode == "2":
+    select_show_data = "0"
+# 詢問是否調取資料
+else:
+    select_show_data = input(Fore.CYAN + Style.BRIGHT + "是否需要調取資料(是請按 0，否請按 1): " + Style.RESET_ALL)
 # 測試用
 # select_show_data = 0
-
 
 # 不調取資料，直接結束程式
 if select_show_data == "1":
