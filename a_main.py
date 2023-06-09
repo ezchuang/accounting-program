@@ -112,25 +112,42 @@ if select_ipt_mode == "0": # input csv
 else: # 個別資料 input
     data = b_data_clean_up.data_input_func()
 
+
 # 依日期排序
 data.sort_values(by=['date'], inplace = True)
 
-# 輸出 選項選擇
+
+# 輸出 
 while True:
-    # 輸出 選項選擇
-    select_opt_mode = input(
-        Fore.YELLOW + 
-        "建立新的帳務檔案 請輸入 0\n" + 
-        "新增資料到既有檔案 請輸入 1\n" + 
-        "不另行儲存，只調取資料 請輸入 2\n" + 
-        "(請確保既有檔案有放入此資料夾中)\n" + 
-        Fore.CYAN + Style.BRIGHT +
-        "請選擇 輸出 模式: " + 
-        Style.RESET_ALL
-        )
-    if select_opt_mode not in ["0", "1", "2"]:
-        print(Fore.RED + Style.BRIGHT + "模式選擇異常" + Style.RESET_ALL)
-        continue
+    # csv輸出選項
+    if select_ipt_mode == "0":
+        # 輸出 選項選擇
+        select_opt_mode = input(
+            Fore.YELLOW + 
+            "建立新的帳務檔案 請輸入 0\n" + 
+            "新增資料到既有檔案 請輸入 1 (請確保既有檔案有放入此資料夾中)\n" + 
+            "不另行儲存，只調取資料 請輸入 2\n" + 
+            Fore.CYAN + Style.BRIGHT +
+            "請選擇 輸出 模式: " + 
+            Style.RESET_ALL
+            )
+        if select_opt_mode not in ["0", "1", "2"]:
+            print(Fore.RED + Style.BRIGHT + "模式選擇異常" + Style.RESET_ALL)
+            continue
+    # 個別輸入限制要存成檔案
+    else:
+        # 輸出 選項選擇
+        select_opt_mode = input(
+            Fore.YELLOW + 
+            "建立新的帳務檔案 請輸入 0\n" + 
+            "新增資料到既有檔案 請輸入 1 (請確保既有檔案有放入此資料夾中)\n" + 
+            Fore.CYAN + Style.BRIGHT +
+            "請選擇 輸出 模式: " + 
+            Style.RESET_ALL
+            )
+        if select_opt_mode not in ["0", "1"]:
+            print(Fore.RED + Style.BRIGHT + "模式選擇異常" + Style.RESET_ALL)
+            continue
     break
 # 測試用
 # select_opt_mode="0"
@@ -283,8 +300,10 @@ while True:
     curr_choice = items_dict[select_which_data]
     curr_header = header_dict[select_which_data]
 
+
     # 統計資料生成
     data_for_opt = b_data_clean_up.data_sum(data, curr_choice, select_date_start, select_date_end)
+
 
     # 針對想要的模式輸出
     # 異常輸入

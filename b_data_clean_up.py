@@ -18,7 +18,10 @@ def data_input_func():
         "date" : [],
     }
     con_ipt = "0"
+    first_turn = 1
     while True:
+        if first_turn != 1:
+            con_ipt = input(Fore.CYAN + Style.BRIGHT + "是否要繼續輸入資料(是:0, 否:1): " + Style.RESET_ALL)
         if con_ipt == "1":
             break
         elif con_ipt != "0":
@@ -31,7 +34,8 @@ def data_input_func():
         data_input["desc"].append(  input(Fore.CYAN + Style.BRIGHT + "請輸入 desc : " + Style.RESET_ALL) )
         data_input["amount"].append(  int( input(Fore.CYAN + Style.BRIGHT + "請輸入 amount : " + Style.RESET_ALL) ) )
         data_input["date"].append(  input(Fore.CYAN + Style.BRIGHT + "請輸入 date : " + Style.RESET_ALL) )
-        con_ipt = input(Fore.CYAN + Style.BRIGHT + "是否要繼續輸入資料(是:0, 否:1): " + Style.RESET_ALL)
+        if first_turn == 1:
+            first_turn = 0
     data = pd.DataFrame(data_input)
     data["date"] = data["date"].apply(reformat_date)
     return data
@@ -69,7 +73,8 @@ def reformat_date(date_str):
 # csv 資料整理
 def data_clean_up(path):
     data = pd.read_csv(path)
-    data["date"] = data["date"].apply(reformat_date) # date 空格 賦予 今日
+    # 整理資訊
+    data["date"] = data["date"].apply(reformat_date)
     return data
 """
 舊資料
@@ -89,7 +94,10 @@ def data_clean_up(path):
 def data_sum(data, item_name, time_start, time_end):
     num, date = "amount", "date"
     # 移除 na
-    data_filtered = data[[item_name, num, date]].dropna(inplace = False)
+    if item_name == date:
+        data_filtered = data[[num, date]].dropna(inplace = False)
+    else:
+        data_filtered = data[[item_name, num, date]].dropna(inplace = False)
     # 日期格式轉換
     data_filtered[date] = pd.to_datetime(data_filtered[date])
     # 篩選日期
