@@ -47,8 +47,8 @@ RGB mode: ESC[38;2;{r};{g};{b}m
 """
 
 # 自訂義模組
-import c_opt_to_chart
-import b_data_clean_up
+import opt_to_chart
+import data_clean_up
 
 
 # 後面呼叫資料時使用，可搜尋 "呼叫資料" 就可以找到該區段的code
@@ -108,9 +108,9 @@ if select_ipt_mode == "0": # input csv
     if not os.path.isfile(path_ipt):
         sys.exit(Fore.RED + Style.BRIGHT + "無此檔案，本程式自動結束" + Style.RESET_ALL)
     # csv 資料整理
-    data = b_data_clean_up.data_clean_up(path_ipt)
+    data = data_clean_up.data_clean_up(path_ipt)
 else: # 個別資料 input
-    data = b_data_clean_up.data_input_func()
+    data = data_clean_up.data_input_func()
 
 
 # 依日期排序
@@ -206,9 +206,9 @@ elif select_opt_mode == "1":
 if select_ipt_mode == "0":
     pass
 elif select_opt_mode == "0":
-    data = b_data_clean_up.data_clean_up(path_opt_new)
+    data = data_clean_up.data_clean_up(path_opt_new)
 elif select_opt_mode == "1":
-    data = b_data_clean_up.data_clean_up(path_be_modify)
+    data = data_clean_up.data_clean_up(path_be_modify)
 
 
 
@@ -248,7 +248,7 @@ while True:
     # select_date_start = "2022-03-09"
 
     # 日期標準化
-    select_date_start = b_data_clean_up.reformat_date(select_date_start)
+    select_date_start = data_clean_up.reformat_date(select_date_start)
     # 輸入異常
     if select_date_start == np.nan:
         print(Fore.RED + Style.BRIGHT + "輸入異常" + Style.RESET_ALL)
@@ -267,7 +267,7 @@ while True:
     # select_date_end = "2023-04-05"
 
     # 日期標準化
-    select_date_end = b_data_clean_up.reformat_date(select_date_end)
+    select_date_end = data_clean_up.reformat_date(select_date_end)
     # 輸入異常(包含日期順序錯誤)
     if select_date_end == np.nan or select_date_start > select_date_end:
         print(Fore.RED + Style.BRIGHT + "輸入異常" + Style.RESET_ALL)
@@ -312,7 +312,7 @@ while True:
 
 
     # 統計資料生成
-    data_for_opt = b_data_clean_up.data_sum(data, curr_choice, select_date_start, select_date_end)
+    data_for_opt = data_clean_up.data_sum(data, curr_choice, select_date_start, select_date_end)
 
 
     # 針對想要的模式輸出
@@ -325,5 +325,5 @@ while True:
         print( data_for_opt.reset_index(drop=True) )
     # 呼叫副程式 opt_to_chart 將指定的 data(data_for_opt) 轉成 Pie
     else:
-        c_opt_to_chart.pie_base( data_for_opt.to_numpy(), curr_header )
+        opt_to_chart.pie_base( data_for_opt.to_numpy(), curr_header )
         print(Fore.GREEN + "完成" + Style.RESET_ALL)
