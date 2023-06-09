@@ -202,6 +202,16 @@ elif select_opt_mode == "1":
 
 
 
+# 個別輸入的空值仍會撈到，重 Load 一次資料
+if select_ipt_mode == "0":
+    pass
+elif select_opt_mode == "0":
+    data = b_data_clean_up.data_clean_up(path_opt_new)
+elif select_opt_mode == "1":
+    data = b_data_clean_up.data_clean_up(path_be_modify)
+
+
+
 # 呼叫資料
 # 跳過詢問
 while True:
