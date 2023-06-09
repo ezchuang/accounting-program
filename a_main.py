@@ -26,6 +26,7 @@ import datetime
 import pandas as pd
 import numpy as np
 import sys
+import os
 
 # 文字顏色模組
 from colorama import Fore 
@@ -103,13 +104,18 @@ if select_ipt_mode == "0": # input csv
     # 副檔名確認
     if ".csv" not in path_ipt:
         path_ipt += ".csv"
+    # 檔名搜不到檔案
+    if not os.path.isfile(path_ipt):
+        sys.exit(Fore.RED + Style.BRIGHT + "無此檔案，本程式自動結束" + Style.RESET_ALL)
     # csv 資料整理
-    if path_ipt.tell() == 0:
-        sys.exit(Fore.RED + Style.BRIGHT + "輸入異常" + Style.RESET_ALL)
     data = b_data_clean_up.data_clean_up(path_ipt)
 else: # 個別資料 input
     data = b_data_clean_up.data_input_func()
 
+# 依日期排序
+data.sort_values(by=['date'], inplace = True)
+
+# 輸出 選項選擇
 while True:
     # 輸出 選項選擇
     select_opt_mode = input(
@@ -141,8 +147,9 @@ if select_opt_mode == "0":
     data.to_csv(path_opt_new , index = False)
     print(Fore.GREEN + "完成" + Style.RESET_ALL)
     print(Fore.BLUE + Style.BRIGHT + "新帳務檔案檔名為: " + path_opt_new + Style.RESET_ALL)
+
 # 修改舊檔案
-elif select_opt_mode ==1:
+elif select_opt_mode == "1":
     path_be_modify = input(Fore.CYAN + Style.BRIGHT + "請輸入欲修改的檔案: " + Style.RESET_ALL)
     # 測試用
     # path_be_modify = "記帳程式用-紀錄"
@@ -150,48 +157,55 @@ elif select_opt_mode ==1:
     if ".csv" not in path_be_modify:
         path_be_modify += ".csv"
     
-    # 寫回方案 1，問答太多了，這個直接指定成預設
     # 與舊資料一起排序，再寫回(覆蓋)檔案
-    # 載入舊檔案
-    data_old = pd.read_csv(path_be_modify)
-    # 合併舊資料和新資料
-    merged_data = pd.concat([data_old, data])
-    # 排序
-    sorted_data = merged_data.sort_values(by=['date'])
-    # 寫回檔案
-    sorted_data.to_csv(path_be_modify, index=False)
-    
-    # 寫回方案 2
-    # 加在資料最後面
-    # newline = ""，避免輸入資料時會額外生成一列空白列
-    # with open(path_be_modify, "a", newline = "") as path_tmp:
-    #     # 檔名搜不到檔案
-    #     if path_tmp.tell() == 0:
-    #         print(Fore.RED + Style.BRIGHT + "檔案不存在，自動新建" + Style.RESET_ALL)
-    #     # 輸出成 csv，由 path_tmp.tell() == 0 判斷是否需要加 header
-    #     data.to_csv(path_tmp, header = (path_tmp.tell() == 0), index = False)
-    #     """
-    #     1. mode = "a"，可用於 .to_csv() 中，此 arg 會同 open() 的設定方式，"a" 表示加在檔案內資料的後面
-    #     2. .tell()，會 return 指向之記憶體位置，"==0" 表 path_tmp 為空或不存在，則需加入 header
-    #     """
-    print(Fore.GREEN + "完成" + Style.RESET_ALL)
-    print(Fore.BLUE + Style.BRIGHT + path_be_modify + Style.RESET_ALL)
+    # 檔名搜不到檔案
+    if(os.path.isfile(path_be_modify)) == 0:
+        print(Fore.RED + Style.BRIGHT + "檔案不存在，自動新建" + Style.RESET_ALL)
+        # 輸出成 csv，由 path_tmp.tell() == 0 判斷是否需要加 header
+        data.to_csv(path_be_modify, header = True, index = False)
+        print(Fore.GREEN + "完成" + Style.RESET_ALL)
+        print(Fore.BLUE + Style.BRIGHT  + "新帳務檔案檔名為: "+ path_be_modify + Style.RESET_ALL)
+        """
+        1. mode = "a"，可用於 .to_csv() 中，此 arg 會同 open() 的設定方式，"a" 表示加在檔案內資料的後面
+        2. .tell()，會 return 指向之記憶體位置，"==0" 表 path_tmp 為空或不存在，則需加入 header
+        """
+        
+    # 舊檔案存在
+    else:
+        # # 載入舊檔案
+        data_old = pd.read_csv(path_be_modify)
+        # 合併舊資料和新資料
+        merged_data = pd.concat( [data_old, data] )
+        # 排序
+        merged_data.sort_values(by = ['date'], inplace = True)
+        # 寫回檔案
+        merged_data.to_csv(path_be_modify, index = False)
+        print(Fore.GREEN + "完成" + Style.RESET_ALL)
+        print(Fore.BLUE + Style.BRIGHT  + "合併後檔案檔名為: "+ path_be_modify + Style.RESET_ALL)
 
 
 
 # 呼叫資料
 # 跳過詢問
-if select_opt_mode == "2":
-    select_show_data = "0"
-# 詢問是否調取資料
-else:
-    select_show_data = input(Fore.CYAN + Style.BRIGHT + "是否需要調取資料(是請按 0，否請按 1): " + Style.RESET_ALL)
-# 測試用
-# select_show_data = 0
+while True:
+    if select_opt_mode == "2":
+        select_show_data = "0"
+    # 詢問是否調取資料
+    else:
+        select_show_data = input(Fore.CYAN + Style.BRIGHT + "是否需要調取資料(是請按 0，否請按 1): " + Style.RESET_ALL)
+    # 測試用
+    # select_show_data = 0
 
-# 不調取資料，直接結束程式
-if select_show_data == "1":
-    sys.exit(Fore.GREEN + "程式結束" + Style.RESET_ALL)
+    # 輸入異常
+    if select_show_data not in ["0", "1"]:
+        print(Fore.RED + Style.BRIGHT + "輸入異常" + Style.RESET_ALL)
+        continue
+
+    # 不調取資料，直接結束程式
+    if select_show_data == "1":
+        sys.exit(Fore.GREEN + "程式結束" + Style.RESET_ALL)
+    
+    break
 
 
 

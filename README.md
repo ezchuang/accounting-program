@@ -1,7 +1,5 @@
 # accounting
  
-"""
-
 title: 
 
     accounting program
@@ -25,5 +23,3 @@ example:
     desc: str
     amount: 1290
     date: 2022/03/29
-
-"""

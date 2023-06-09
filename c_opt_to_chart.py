@@ -5,7 +5,7 @@ from pyecharts.charts import Pie
 def pie_base(data, header):
     pie_data = (
         Pie()\
-        .add("", data, radius=["30%", "50%"], center=["40%", "50%"], rosetype = "radius",)
+        .add("", data, radius=["30%", "60%"], center=["40%", "50%"],)
         .set_global_opts(
             title_opts = opts.TitleOpts( title = header ),
             legend_opts = opts.LegendOpts(
@@ -14,7 +14,8 @@ def pie_base(data, header):
                 orient = "vertical",
             ),
         )
-        .set_series_opts(label_opts = opts.LabelOpts(formatter = "{b}: {c}"))
+        .set_series_opts(label_opts = opts.LabelOpts(formatter = "{b}: {c}"),\
+                         tooltip_opts=opts.TooltipOpts(trigger="item", formatter= "{b}: {c} ({d}%)"),)
     )
     pie_data.render(header+".html")
     
