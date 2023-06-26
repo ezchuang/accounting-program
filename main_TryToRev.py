@@ -54,6 +54,16 @@ header_dict = {
 }
 
 
+"""
+OOP測試
+"""
+class InputFileCmd():
+    def Exec(self):
+        data_path = input()
+    def CmdMsg(self):
+        return "Input File as DataFrame."
+
+
 
 # 輸入資料警示
 print(Fore.YELLOW +
