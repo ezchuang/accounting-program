@@ -63,6 +63,15 @@ class InputFileCmd():
     def CmdMsg(self):
         return "Input File as DataFrame."
 
+class TextColor():
+    def depiction(self):
+        return Fore.YELLOW
+    def warning(self):
+        return Fore.RED + Style.BRIGHT
+    def text_end(self):
+        return Style.RESET_ALL
+    def high_light(self):
+        return Fore.YELLOW + Style.BRIGHT
 
 
 # 輸入資料警示
