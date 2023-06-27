@@ -61,68 +61,47 @@ print(
         "date 填入數值錯誤會被更改成空值")
     )
 
-# 輸入 選項選擇
+
 if __name__ == "__main__":
+    # 輸入選項(csv or 個別輸入)
     cmd_dict={
-        "0" : function_TryToRev.InputFileCmd.Ipt(),
+        "0" : function_TryToRev.InputFileCmd.Ipt_csv(),
         "1" : function_TryToRev.InputFileCmd.Ipt_sep(),
     }
+    # 輸入 選項選擇
     while True:
-        select_ipt_mode = input(function_TryToRev.InputFileCmd.Ipt_Msg(1))
+        select_ipt_mode = input(function_TryToRev.InputFileCmd.Ipt_Msg(1, "1"))
         if select_ipt_mode not in cmd_dict:
             print(textcolor.Color.warning("模式選擇異常"))
             continue
         break
+    # load in 資料
     data = cmd_dict[select_ipt_mode]
 
 
-# 輸入 檔案確認
-# if select_ipt_mode == "0": # input csv
-#     InputFileCmd.Ipt_Msg("請將目標csv檔案與本程式放置於相同資料夾中")
-#     data = InputFileCmd.Ipt()
-# else: # 個別資料 input
-#     data = data_clean_up.data_input_func()
-"""
-! 個別輸入的部分先不改寫
-"""
+    # 整理 date 格式
+    data["date"] = data["date"].apply(function_TryToRev.General.Reformat_date)
+    # 依日期排序
+    data.sort_values(by=['date'], inplace = True)
 
-
-# # 依日期排序
-# data.sort_values(by=['date'], inplace = True)
-
-
-# # 輸出 
-# while True:
-#     # csv輸出選項
-#     if select_ipt_mode == "0":
-#         # 輸出 選項選擇
-#         select_opt_mode = input(
-#             textcolor.Color.depiction(
-#                 "建立新的帳務檔案 請輸入 0\n" + 
-#                 "新增資料到既有檔案 請輸入 1 (請確保既有檔案有放入此資料夾中)\n" + 
-#                 "不另行儲存，只調取資料 請輸入 2\n") + 
-#             textcolor.Color.mode_select("請選擇 輸出 模式: ")
-#             )
-#         if select_opt_mode not in ["0", "1", "2"]:
-#             print(textcolor.Color.warning("模式選擇異常"))
-#             continue
-#     # 個別輸入限制要存成檔案
-#     else:
-#         # 輸出 選項選擇
-#         select_opt_mode = input(
-#             textcolor.Color.depiction(
-#                 "建立新的帳務檔案 請輸入 0\n" + 
-#                 "新增資料到既有檔案 請輸入 1 (請確保既有檔案有放入此資料夾中)\n") + 
-#             textcolor.Color.mode_select("請選擇 輸出 模式: ")
-#             )
-#         if select_opt_mode not in ["0", "1"]:
-#             print(textcolor.Color.warning("模式選擇異常"))
-#             continue
-#     break
-# # 測試用
-# # select_opt_mode="0"
-
-
+    # 輸出選項(建立新檔案 or 更新舊檔案)
+    cmd_dict={
+        "0" : function_TryToRev.OnputFileCmd.Opt_new(data),
+        "1" : function_TryToRev.OnputFileCmd.Opt_rev(data),
+    }
+    # 只調取資料，不儲存資料
+    # 個別輸入限制要存成檔案，所以此 mode 只有用csv input才能用
+    if select_ipt_mode == "0":
+        cmd_dict["2"] = function_TryToRev.OnputFileCmd # ! 這條件沒寫完
+    # 輸出 選項選擇
+    while True:
+        select_opt_mode = input(function_TryToRev.OnputFileCmd.Opt_msg(1, select_ipt_mode))
+        if select_opt_mode not in cmd_dict:
+            print(textcolor.Color.warning("模式選擇異常"))
+            continue
+        break
+    # 輸出模式執行
+    cmd_dict[select_opt_mode]
 
 # # 輸出 檔案確認
 # # 建立新檔案
@@ -138,8 +117,6 @@ if __name__ == "__main__":
 # # 修改舊檔案
 # elif select_opt_mode == "1":
 #     path_be_modify = input(textcolor.Color.mode_select("請輸入欲修改的檔案: "))
-#     # 測試用
-#     # path_be_modify = "記帳程式用-紀錄"
 #     # 副檔名確認
 #     if ".csv" not in path_be_modify:
 #         path_be_modify += ".csv"

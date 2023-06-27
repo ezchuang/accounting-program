@@ -8,9 +8,9 @@ import sys
 import os
 import textcolor
 
-class General():
+class General:
     # 日期格式化
-    def reformat_date(date_str):
+    def Reformat_date(date_str):
         # 本來就是空值
         if pd.isnull(date_str):
             return None
@@ -36,22 +36,41 @@ class General():
             return None
 
         return "-".join(date_parts) # 2023/06/08
+    
+    
+    # 副檔名檢查
+    def File_name_check(name):
+        if ".csv" not in name:
+            name += ".csv"
+
+    # 檔案是否存在
+    def File_exist(name):
+        return os.path.isfile(name)
 
 
-class InputFileCmd():
+class InputFileCmd:
+    # 共用 msg
+    def Ipt_Msg(stage, mode):
+        if stage == 1 and mode == "1":
+            return textcolor.Color.depiction("csv批次輸入 請輸入 0\n單筆資料輸入 請輸入 1\n") + \
+                    textcolor.Color.mode_select("請選擇 輸入 模式: ")
+        elif stage == 2:
+            if mode == "0":
+                return textcolor.Color.warning("無此檔案，本程式自動結束")
+
+        
+    
     # csv批次輸入資料
     def Ipt_csv():
         path_ipt = input(textcolor.Color.mode_select("請輸入csv檔案名稱: "))
         # 副檔名確認
-        if ".csv" not in path_ipt:
-            path_ipt += ".csv"
+        General.File_name_check(path_ipt)
         # 檔名搜不到檔案
-        if not os.path.isfile(path_ipt):
+        if not General.File_exist(path_ipt):
             sys.exit(textcolor.Color.warning("無此檔案，本程式自動結束"))
         # csv 資料整理
         data = pd.read_csv(path_ipt)
-        # 整理 date 格式
-        data["date"] = data["date"].apply(General.reformat_date)
+        
         return data
     
     # 個別輸入資料
@@ -66,7 +85,7 @@ class InputFileCmd():
             "amount" : [],
             "date" : [],
         }
-        cmd_dict_Ipt_sep ={"0","1"}
+        cmd_dict_Ipt_sep = {"0","1"}
         con_ipt = "1"
         first_round = 1
         while con_ipt != "0":
@@ -77,15 +96,54 @@ class InputFileCmd():
                 print(textcolor.Color.warning("輸入異常"))
                 continue
             for i in item:
-                data_input[i].append( input(textcolor.Color.mode_select(f"請輸入 {i} : ")) )
+                data_input[i].append( input(textcolor.Color.mode_select(f"請輸入 {i}: ")) )
         data = pd.DataFrame(data_input)
-        data["date"] = data["date"].apply(General.reformat_date)
+        
         return data
 
-    # 還沒用上
-    def Ipt_Msg(self):
-        if self == 1:
-            return textcolor.Color.depiction("csv批次輸入 請輸入 0\n單筆資料輸入 請輸入 1\n") + \
-                    textcolor.Color.mode_select("請選擇 輸入 模式: ")
         
 
+class OnputFileCmd():
+    # 共用 msg
+    def Opt_msg(stage, mode):
+        if stage == 1:
+            if mode == "0":
+                return textcolor.Color.depiction(
+                        "建立新的帳務檔案 請輸入 0\n" + 
+                        "新增資料到既有檔案 請輸入 1 (請確保既有檔案有放入此資料夾中)\n" + 
+                        "不另行儲存，只調取資料 請輸入 2\n"
+                        ) + \
+                        textcolor.Color.mode_select("請選擇 輸出 模式: ")
+            elif mode == "1":
+                return textcolor.Color.depiction(
+                        "建立新的帳務檔案 請輸入 0\n" + 
+                        "新增資料到既有檔案 請輸入 1 (請確保既有檔案有放入此資料夾中)\n"
+                        ) + \
+                        textcolor.Color.mode_select("請選擇 輸出 模式: ")
+        elif stage == 2:
+            if mode == "0":
+                return textcolor.Color.mode_select("請輸入欲新增的檔案名稱: ")
+            elif mode == "1":
+                return textcolor.Color.mode_select("請輸入欲修改的檔案: ")
+        elif stage == 3:
+            if mode == "0":
+                return textcolor.Color.finished_msg("完成") + "\n" + textcolor.Color.mode_select("新帳務檔案檔名為: ")
+            elif mode == "1":
+                return textcolor.Color.finished_msg("完成") + "\n" + textcolor.Color.mode_select("合併後檔案檔名為: ")
+    
+    # csv輸出
+    def Opt_new(data):
+        # 輸入檔名
+        path_opt_new = input(OnputFileCmd.Opt_msg(2, "0"))
+        # 確認副檔名
+        General.File_name_check(path_opt_new)
+        # 輸出成檔案
+        data.to_csv(path_opt_new , index = False)
+        # 列印完成資訊
+        print(OnputFileCmd.Opt_msg(3, "0"))
+
+    def Opt_rev(data):
+        # 輸入檔名
+        path_opt_new = input(OnputFileCmd.Opt_msg(2, "1"))
+        # 確認副檔名
+        General.File_name_check(path_opt_new)
