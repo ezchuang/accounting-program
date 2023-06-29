@@ -62,21 +62,55 @@ print(
     )
 
 
+class Main_routine:
+    def __init__(self):
+        self.Ipt_data = None
+        self.Opt_data = None
+        self.data = None
+
+    def run(self):
+        self.select_input_mode()
+        self.load_data()
+        self.format_date()
+        self.select_output_mode()
+        self.select_data()
+        self.show_data()
+    
+    def select_input_mode(self):
+        textcolor.Color.depiction("csv批次輸入 請輸入 0\n單筆資料輸入 請輸入 1\n")
+        # 輸入 選項選擇
+        cmd_dict = {"0", "1"}
+        select_ipt_mode = input(textcolor.Color.mode_select("請選擇 輸入 模式: "))
+        Ipt_data = function_TryToRev.InputFileCmd.creat_ipt_obj(cmd_dict, select_ipt_mode)
+        Ipt_data.cmd_dict = {
+            "0" : Ipt_data.Ipt_csv(),
+            "1" : Ipt_data.Ipt_sep(),
+        }
+
+        # load in 資料
+        data = Ipt_data.cmd_dict[select_ipt_mode]
+
+
+
+
+
+
 if __name__ == "__main__":
     # 輸入選項(csv or 個別輸入)
-    cmd_dict={
-        "0" : function_TryToRev.InputFileCmd.Ipt_csv(),
-        "1" : function_TryToRev.InputFileCmd.Ipt_sep(),
+    Ipt_data = function_TryToRev.InputFileCmd({"0", "1"})
+    Ipt_data.cmd_dict = {
+        "0" : Ipt_data.Ipt_csv(),
+        "1" : Ipt_data.Ipt_sep(),
     }
     # 輸入 選項選擇
     while True:
-        select_ipt_mode = input(function_TryToRev.InputFileCmd.Ipt_Msg(1, "1"))
-        if select_ipt_mode not in cmd_dict:
+        select_ipt_mode = input(Ipt_data.Ipt_msg(1, "1"))
+        if select_ipt_mode not in Ipt_data.cmd_dict:
             print(textcolor.Color.warning("模式選擇異常"))
             continue
         break
     # load in 資料
-    data = cmd_dict[select_ipt_mode]
+    data = Ipt_data.cmd_dict[select_ipt_mode]
 
 
     # 整理 date 格式

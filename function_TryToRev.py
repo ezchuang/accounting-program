@@ -47,10 +47,35 @@ class General:
     def File_exist(name):
         return os.path.isfile(name)
 
+class FileCmd:
+    def __init__(self, cmd_dict, mode):
+        super().__init__()
+        self.cmd_dict = cmd_dict
+        self.mode = mode
 
-class InputFileCmd:
+    @classmethod
+    def creat_ipt_obj(cls, cmd_dict, mode):
+        try:
+            valid_mode_selection = cls.validate_mode(cmd_dict, mode)
+        except ValueError:
+            print(f"模式選擇異常")
+            return cls.creat_ipt_obj(cmd_dict, input(textcolor.Color.mode_select("請重新選擇模式: ")))
+        return cls(cmd_dict, mode)
+    
+    @staticmethod
+    def validate_mode(cmd_dict, mode):
+        if mode not in cmd_dict:
+            raise ValueError()
+        return mode
+
+
+class InputFileCmd(FileCmd):
+    def __init__(self, cmd_dict, mode):
+        self.cmd_dict = cmd_dict
+        self.mode = mode
+
     # 共用 msg
-    def Ipt_Msg(stage, mode):
+    def Ipt_msg(self, stage, mode):
         if stage == 1 and mode == "1":
             return textcolor.Color.depiction("csv批次輸入 請輸入 0\n單筆資料輸入 請輸入 1\n") + \
                     textcolor.Color.mode_select("請選擇 輸入 模式: ")
@@ -58,23 +83,20 @@ class InputFileCmd:
             if mode == "0":
                 return textcolor.Color.warning("無此檔案，本程式自動結束")
 
-        
-    
     # csv批次輸入資料
-    def Ipt_csv():
+    def Ipt_csv(self):
         path_ipt = input(textcolor.Color.mode_select("請輸入csv檔案名稱: "))
         # 副檔名確認
         General.File_name_check(path_ipt)
         # 檔名搜不到檔案
         if not General.File_exist(path_ipt):
-            sys.exit(textcolor.Color.warning("無此檔案，本程式自動結束"))
+            sys.exit(InputFileCmd.Ipt_msg(2, "0"))
         # csv 資料整理
         data = pd.read_csv(path_ipt)
-        
         return data
     
     # 個別輸入資料
-    def Ipt_sep():
+    def Ipt_sep(self):
         item = ["name", "main_ctgr", "sub_ctgr", "tag", "desc", "amount", "date"]
         data_input={
             "name" : [],
@@ -103,9 +125,9 @@ class InputFileCmd:
 
         
 
-class OnputFileCmd():
+class OnputFileCmd(FileCmd):
     # 共用 msg
-    def Opt_msg(stage, mode):
+    def Opt_msg(self, stage, mode):
         if stage == 1:
             if mode == "0":
                 return textcolor.Color.depiction(
@@ -132,7 +154,7 @@ class OnputFileCmd():
                 return textcolor.Color.finished_msg("完成") + "\n" + textcolor.Color.mode_select("合併後檔案檔名為: ")
     
     # csv輸出
-    def Opt_new(data):
+    def Opt_new(self, data):
         # 輸入檔名
         path_opt_new = input(OnputFileCmd.Opt_msg(2, "0"))
         # 確認副檔名
@@ -142,7 +164,7 @@ class OnputFileCmd():
         # 列印完成資訊
         print(OnputFileCmd.Opt_msg(3, "0"))
 
-    def Opt_rev(data):
+    def Opt_rev(self, data):
         # 輸入檔名
         path_opt_new = input(OnputFileCmd.Opt_msg(2, "1"))
         # 確認副檔名
