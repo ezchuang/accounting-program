@@ -31,6 +31,7 @@ import os
 import opt_to_chart
 import function_TryToRev
 import textcolor
+import cmd_db
 
 
 # 後面呼叫資料時使用，可搜尋 "呼叫資料" 就可以找到該區段的code
@@ -64,240 +65,108 @@ print(
 
 class Main_routine:
     def __init__(self):
-        self.Ipt_data = None
-        self.Opt_data = None
+        self.cmd_dict = None
+        self.select_ipt_mode = None
+        self.ipt_data_obj = None
+        self.select_opt_mode = None
+        self.opt_data_obj = None
+        self.path_opt = None
         self.data = None
+        self.show_data_obj = None
 
     def run(self):
         self.select_input_mode()
         self.load_data()
         self.format_date()
         self.select_output_mode()
-        self.select_data()
+        self.save_data()
+        self.data_pretreatment()
+        self.whether_show_data()
         self.show_data()
     
+    # 選擇輸入模式
     def select_input_mode(self):
-        textcolor.Color.depiction("csv批次輸入 請輸入 0\n單筆資料輸入 請輸入 1\n")
+        # 調取該模式"顯示"用的 cmd_dict
+        self.cmd_dict = cmd_db.ipt_msg()
         # 輸入 選項選擇
-        cmd_dict = {"0", "1"}
-        select_ipt_mode = input(textcolor.Color.mode_select("請選擇 輸入 模式: "))
-        Ipt_data = function_TryToRev.InputFileCmd.creat_ipt_obj(cmd_dict, select_ipt_mode)
-        Ipt_data.cmd_dict = {
-            "0" : Ipt_data.Ipt_csv(),
-            "1" : Ipt_data.Ipt_sep(),
-        }
+        for msg in self.cmd_dict:
+            print(textcolor.Color.depiction(f"{self.cmd_dict[msg]}"))
+        self.select_ipt_mode = input(textcolor.Color.mode_select("請選擇 輸入 模式: "))
 
+    # 輸入資料
+    def load_data(self):
+        # 建立obj
+        self.ipt_data_obj = function_TryToRev.InputFileCmd.creat_obj(self.cmd_dict, self.select_ipt_mode)
+        # 調取該模式"執行"用的 cmd_dict
+        self.ipt_data_obj.cmd_dict = cmd_db.ipt_run(self.ipt_data_obj)
         # load in 資料
-        data = Ipt_data.cmd_dict[select_ipt_mode]
+        self.data = self.ipt_data_obj.cmd_dict[self.select_ipt_mode]()
+        # 這邊的 ipt_data_obj.cmd_dict 結束任務
+    
+    # 日期格式化 與 排序
+    def format_date(self):
+        # 整理 date 格式
+        self.data["date"] = self.data["date"].apply(function_TryToRev.General.reformat_date)
+        # 依日期排序
+        self.data.sort_values(by=['date'], inplace = True)
 
 
+    # 選擇輸出模式
+    def select_output_mode(self):
+        # 調取該模式"顯示"用的 cmd_dict
+        self.cmd_dict = cmd_db.opt_msg(self.select_ipt_mode)
+        # 輸入 選項選擇
+        for msg in self.cmd_dict:
+            print(textcolor.Color.depiction(f"{self.cmd_dict[msg]}"))
+        self.select_opt_mode = input(textcolor.Color.mode_select("請選擇 輸出 模式: "))
+    
+    # 資料整併與存檔
+    def save_data(self):
+        # 建立obj
+        self.opt_data_obj = function_TryToRev.InputFileCmd.creat_obj(self.cmd_dict, self.select_ipt_mode)
+        # 調取該模式"執行"用的 cmd_dict
+        self.opt_data_obj.cmd_dict = cmd_db.ipt_run(self.ipt_data_obj, self.select_ipt_mode)
+        # save 資料
+        self.path_opt = self.ipt_data_obj.cmd_dict[self.select_opt_mode]()
 
 
+        # 測試用
+        print(self.data)
+        print(self.ipt_data_obj.cmd_dict)
+
+    # 可調取的資料僅限此次輸入資料
+    def data_pretreatment(self):
+        # 個別輸入的空值仍會撈到，重 Load 一次資料
+        if self.select_ipt_mode == "0":
+            pass
+        else:
+            self.data = pd.read_csv(self.path_opt)
+
+    # 是否調取資料選擇
+    def whether_show_data(self):
+        if self.select_opt_mode == "2":
+            whether_show_mode = "0"
+        else:
+            # 詢問是否調取資料
+            self.cmd_dict = cmd_db.show_data_mode_msg()
+            # 選項選擇
+            for msg in self.cmd_dict:
+                print(textcolor.Color.depiction(f"{self.cmd_dict[msg]}"))
+            whether_show_mode = input(textcolor.Color.mode_select("請選擇 是否需要調取資料: "))
+        self.show_data_obj = function_TryToRev.Show_data.creat_obj(self.cmd_dict, whether_show_mode)
+        # 是否結束程式
+        self.show_data_obj.whether_show(whether_show_mode)
+
+    def show_data(self):
+        self.show_data_obj.cmd_dict = cmd_db.show_data_select_msg()
+        print(textcolor.Color.depiction("請輸入您想顯示的分類方式: "))
+        for msg in self.show_data_obj.cmd_dict:
+            print(textcolor.Color.depiction(f"{self.show_data_obj.cmd_dict[msg]}"))
+        # 輸入 選項選擇
+        data_select = input(textcolor.Color.mode_select("請輸入選擇呈現的資訊: "))
+        self.show_data_obj.show_data_main(data_select)
 
 
 if __name__ == "__main__":
-    # 輸入選項(csv or 個別輸入)
-    Ipt_data = function_TryToRev.InputFileCmd({"0", "1"})
-    Ipt_data.cmd_dict = {
-        "0" : Ipt_data.Ipt_csv(),
-        "1" : Ipt_data.Ipt_sep(),
-    }
-    # 輸入 選項選擇
-    while True:
-        select_ipt_mode = input(Ipt_data.Ipt_msg(1, "1"))
-        if select_ipt_mode not in Ipt_data.cmd_dict:
-            print(textcolor.Color.warning("模式選擇異常"))
-            continue
-        break
-    # load in 資料
-    data = Ipt_data.cmd_dict[select_ipt_mode]
-
-
-    # 整理 date 格式
-    data["date"] = data["date"].apply(function_TryToRev.General.Reformat_date)
-    # 依日期排序
-    data.sort_values(by=['date'], inplace = True)
-
-    # 輸出選項(建立新檔案 or 更新舊檔案)
-    cmd_dict={
-        "0" : function_TryToRev.OnputFileCmd.Opt_new(data),
-        "1" : function_TryToRev.OnputFileCmd.Opt_rev(data),
-    }
-    # 只調取資料，不儲存資料
-    # 個別輸入限制要存成檔案，所以此 mode 只有用csv input才能用
-    if select_ipt_mode == "0":
-        cmd_dict["2"] = function_TryToRev.OnputFileCmd # ! 這條件沒寫完
-    # 輸出 選項選擇
-    while True:
-        select_opt_mode = input(function_TryToRev.OnputFileCmd.Opt_msg(1, select_ipt_mode))
-        if select_opt_mode not in cmd_dict:
-            print(textcolor.Color.warning("模式選擇異常"))
-            continue
-        break
-    # 輸出模式執行
-    cmd_dict[select_opt_mode]
-
-# # 輸出 檔案確認
-# # 建立新檔案
-# if select_opt_mode == "0": 
-#     path_opt_new = input(textcolor.Color.mode_select("請輸入欲新增的檔案名稱: "))
-#     # 副檔名確認
-#     if ".csv" not in path_opt_new:
-#         path_opt_new += ".csv"
-#     data.to_csv(path_opt_new , index = False)
-#     print(textcolor.Color.finished_msg("完成"))
-#     print(textcolor.Color.finished_res("新帳務檔案檔名為: "))
-
-# # 修改舊檔案
-# elif select_opt_mode == "1":
-#     path_be_modify = input(textcolor.Color.mode_select("請輸入欲修改的檔案: "))
-#     # 副檔名確認
-#     if ".csv" not in path_be_modify:
-#         path_be_modify += ".csv"
-    
-#     # 與舊資料一起排序，再寫回(覆蓋)檔案
-#     # 檔名搜不到檔案
-#     if(os.path.isfile(path_be_modify)) == 0:
-#         print(textcolor.Color.warning("檔案不存在，自動新建"))
-#         # 輸出成 csv，由 path_tmp.tell() == 0 判斷是否需要加 header
-#         data.to_csv(path_be_modify, header = True, index = False)
-#         print(textcolor.Color.finished_msg("完成"))
-#         print(textcolor.Color.finished_res("新帳務檔案檔名為: " + path_be_modify))
-#         """
-#         1. mode = "a"，可用於 .to_csv() 中，此 arg 會同 open() 的設定方式，"a" 表示加在檔案內資料的後面
-#         2. .tell()，會 return 指向之記憶體位置，"==0" 表 path_tmp 為空或不存在，則需加入 header
-#         """
-        
-#     # 舊檔案存在
-#     else:
-#         # # 載入舊檔案
-#         data_old = pd.read_csv(path_be_modify)
-#         # 合併舊資料和新資料
-#         merged_data = pd.concat( [data_old, data] )
-#         # 排序
-#         merged_data.sort_values(by = ['date'], inplace = True)
-#         # 寫回檔案
-#         merged_data.to_csv(path_be_modify, index = False)
-#         print(textcolor.Color.finished_msg("完成"))
-#         print(textcolor.Color.finished_res("合併後檔案檔名為: "+ path_be_modify))
-
-
-
-# # 個別輸入的空值仍會撈到，重 Load 一次資料
-# if select_ipt_mode == "0":
-#     pass
-# elif select_opt_mode == "0":
-#     data = data_clean_up.data_clean_up(path_opt_new)
-# elif select_opt_mode == "1":
-#     data = data_clean_up.data_clean_up(path_be_modify)
-
-
-
-# # 呼叫資料
-# # 跳過詢問
-# while True:
-#     if select_opt_mode == "2":
-#         select_show_data = "0"
-#     # 詢問是否調取資料
-#     else:
-#         select_show_data = input(textcolor.Color.mode_select("是否需要調取資料(是請按 0，否請按 1): "))
-#     # 測試用
-#     # select_show_data = 0
-
-#     # 輸入異常
-#     if select_show_data not in ["0", "1"]:
-#         print(textcolor.Color.warning("輸入異常"))
-#         continue
-
-#     # 不調取資料，直接結束程式
-#     if select_show_data == "1":
-#         sys.exit(textcolor.Color.finished_msg("程式結束"))
-    
-#     break
-
-
-
-# # 日期區間選擇
-# # 開始日期
-# while True:
-#     select_date_start = input(textcolor.Color.high_light("請輸入要調取的日期區間(格式:XXXX-XX-XX)") + 
-#                             textcolor.Color.mode_select("開始日期: "))
-#     # 測試用
-#     # select_date_start = "2022-03-09"
-
-#     # 日期標準化
-#     select_date_start = data_clean_up.reformat_date(select_date_start)
-#     # 輸入異常
-#     if select_date_start == np.nan:
-#         print(textcolor.Color.warning("輸入異常"))
-#         continue
-#     # 將日期格式成 datetime 格式
-#     break
-
-# # 結束日期
-# while True:
-#     select_date_end = input(textcolor.Color.depiction("請輸入要調取的日期區間(格式:XXXX-XX-XX)") + 
-#                             textcolor.Color.mode_select("結束日期: "))
-#     # 測試用
-#     # select_date_end = "2023-04-05"
-
-#     # 日期標準化
-#     select_date_end = data_clean_up.reformat_date(select_date_end)
-#     # 輸入異常(包含日期順序錯誤)
-#     if select_date_end == np.nan or select_date_start > select_date_end:
-#         print(textcolor.Color.warning("輸入異常"))
-#         continue
-#     # 將日期格式成 datetime 格式，不做在上面的 while 是因為讓 false 先判斷排除
-#     select_date_start = datetime.datetime.strptime(select_date_start, "%Y-%m-%d")
-#     select_date_end = datetime.datetime.strptime(select_date_end, "%Y-%m-%d")
-#     break
-
-
-
-# # 選擇要調取資料的種類與方式
-# while True:
-#     select_which_data = input(textcolor.Color.depiction(
-#                                 "請輸入您想顯示的分類方式: \n" +
-#                                 "name (不分類，且個別輸出)請輸入 0\n" +
-#                                 "main category 請輸入 1\n" +
-#                                 "sub category 請輸入 2\n" +
-#                                 "tag 請輸入 3\n" +
-#                                 "date 請輸入 4\n" +
-#                                 "結束程序 請輸入 5\n") +
-#                             textcolor.Color.mode_select("請輸入您的選擇: "))
-#     # 測試用
-#     # select_which_data = "1"
-#     # 選擇想要比較的資料
-#     # 異常輸入
-#     if select_which_data not in items_dict and select_which_data != "5":
-#         print(textcolor.Color.warning("輸入異常"))
-#         continue
-#     # 結束程式
-#     elif select_which_data == "5":
-#         sys.exit(textcolor.Color.finished_msg("程式結束"))
-#     # 選擇需要的項目(選擇下一步驟)
-#     else:
-#         select_show_data_mode = input(textcolor.Color.depiction("圖表顯示請輸入 0\n顯示於本程式內請輸入 1\n") + textcolor.Color.mode("請輸入您的選擇(會依總金額排序): "))
-#         # 測試用
-#         # select_show_data_mode = "0"
-#     # 變數名稱太長，多用一個變數
-#     curr_choice = items_dict[select_which_data]
-#     curr_header = header_dict[select_which_data]
-
-
-#     # 統計資料生成
-#     data_for_opt = data_clean_up.data_sum(data, curr_choice, select_date_start, select_date_end)
-
-
-#     # 針對想要的模式輸出
-#     # 異常輸入
-#     if select_show_data_mode != "0" and select_show_data_mode != "1":
-#         print(textcolor.Color.warning("輸入異常"))
-#     # 程式內輸出
-#     elif select_show_data_mode == "1":
-#         # 處理 index 並輸出
-#         print( data_for_opt.reset_index(drop=True) )
-#     # 呼叫副程式 opt_to_chart 將指定的 data(data_for_opt) 轉成 Pie
-#     else:
-#         opt_to_chart.pie_base( data_for_opt.to_numpy(), curr_header )
-#         print(textcolor.Color.finished_msg("完成"))
+    main_function = Main_routine()
+    main_function.run()

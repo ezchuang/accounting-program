@@ -7,10 +7,11 @@ import numpy as np
 import sys
 import os
 import textcolor
+import datetime
 
 class General:
     # 日期格式化
-    def Reformat_date(date_str):
+    def reformat_date(date_str: str) -> str:
         # 本來就是空值
         if pd.isnull(date_str):
             return None
@@ -39,28 +40,31 @@ class General:
     
     
     # 副檔名檢查
-    def File_name_check(name):
+    def file_name_check(name):
         if ".csv" not in name:
             name += ".csv"
 
     # 檔案是否存在
-    def File_exist(name):
+    def file_exist(name):
         return os.path.isfile(name)
+
+
 
 class FileCmd:
     def __init__(self, cmd_dict, mode):
-        super().__init__()
         self.cmd_dict = cmd_dict
         self.mode = mode
 
     @classmethod
-    def creat_ipt_obj(cls, cmd_dict, mode):
-        try:
-            valid_mode_selection = cls.validate_mode(cmd_dict, mode)
-        except ValueError:
-            print(f"模式選擇異常")
-            return cls.creat_ipt_obj(cmd_dict, input(textcolor.Color.mode_select("請重新選擇模式: ")))
-        return cls(cmd_dict, mode)
+    def creat_obj(cls, cmd_dict, mode):
+        while True:
+            try:
+                valid_mode_selection = cls.validate_mode(cmd_dict, mode)
+                break
+            except ValueError:
+                print(textcolor.Color.warning("模式選擇異常"))
+                print(textcolor.Color.mode_select("請重新選擇模式: "))
+        return cls(cmd_dict, valid_mode_selection)
     
     @staticmethod
     def validate_mode(cmd_dict, mode):
@@ -70,34 +74,20 @@ class FileCmd:
 
 
 class InputFileCmd(FileCmd):
-    def __init__(self, cmd_dict, mode):
-        self.cmd_dict = cmd_dict
-        self.mode = mode
-
-    # 共用 msg
-    def Ipt_msg(self, stage, mode):
-        if stage == 1 and mode == "1":
-            return textcolor.Color.depiction("csv批次輸入 請輸入 0\n單筆資料輸入 請輸入 1\n") + \
-                    textcolor.Color.mode_select("請選擇 輸入 模式: ")
-        elif stage == 2:
-            if mode == "0":
-                return textcolor.Color.warning("無此檔案，本程式自動結束")
-
     # csv批次輸入資料
-    def Ipt_csv(self):
+    def ipt_csv(self) -> pd.DataFrame:
         path_ipt = input(textcolor.Color.mode_select("請輸入csv檔案名稱: "))
         # 副檔名確認
-        General.File_name_check(path_ipt)
+        General.file_name_check(path_ipt)
         # 檔名搜不到檔案
-        if not General.File_exist(path_ipt):
-            sys.exit(InputFileCmd.Ipt_msg(2, "0"))
+        if not General.file_exist(path_ipt):
+            sys.exit(textcolor.Color.warning("無此檔案，本程式自動結束"))
         # csv 資料整理
         data = pd.read_csv(path_ipt)
         return data
     
     # 個別輸入資料
-    def Ipt_sep(self):
-        item = ["name", "main_ctgr", "sub_ctgr", "tag", "desc", "amount", "date"]
+    def ipt_sep(self) -> pd.DataFrame:
         data_input={
             "name" : [],
             "main_ctgr" : [],
@@ -107,65 +97,118 @@ class InputFileCmd(FileCmd):
             "amount" : [],
             "date" : [],
         }
-        cmd_dict_Ipt_sep = {"0","1"}
+        # 限制選擇模式
+        cmd_dict_ipt_sep = {"0", "1"}
+        # 初始條件
         con_ipt = "1"
         first_round = 1
+
         while con_ipt != "0":
-            if first_round == 1:
-                con_ipt = input( textcolor.Color.mode_select("是否要繼續輸入資料(是:0, 否:1): ") )
+            # 第一輪不執行
+            if first_round != 1:
+                con_ipt = input(textcolor.Color.mode_select("是否要繼續輸入資料(是:0, 否:1): "))
+            else:
                 first_round = 0
-            if con_ipt not in cmd_dict_Ipt_sep:
+            # 模式檢查
+            if con_ipt not in cmd_dict_ipt_sep:
                 print(textcolor.Color.warning("輸入異常"))
                 continue
-            for i in item:
-                data_input[i].append( input(textcolor.Color.mode_select(f"請輸入 {i}: ")) )
+            # 逐項詢問輸入
+            for item in data_input.keys():
+                data_input[item].append(input(textcolor.Color.mode_select(f"請輸入 {item}: ")))
+        # 完成後轉成 DataFrame
         data = pd.DataFrame(data_input)
-        
         return data
 
         
 
 class OnputFileCmd(FileCmd):
-    # 共用 msg
-    def Opt_msg(self, stage, mode):
-        if stage == 1:
-            if mode == "0":
-                return textcolor.Color.depiction(
-                        "建立新的帳務檔案 請輸入 0\n" + 
-                        "新增資料到既有檔案 請輸入 1 (請確保既有檔案有放入此資料夾中)\n" + 
-                        "不另行儲存，只調取資料 請輸入 2\n"
-                        ) + \
-                        textcolor.Color.mode_select("請選擇 輸出 模式: ")
-            elif mode == "1":
-                return textcolor.Color.depiction(
-                        "建立新的帳務檔案 請輸入 0\n" + 
-                        "新增資料到既有檔案 請輸入 1 (請確保既有檔案有放入此資料夾中)\n"
-                        ) + \
-                        textcolor.Color.mode_select("請選擇 輸出 模式: ")
-        elif stage == 2:
-            if mode == "0":
-                return textcolor.Color.mode_select("請輸入欲新增的檔案名稱: ")
-            elif mode == "1":
-                return textcolor.Color.mode_select("請輸入欲修改的檔案: ")
-        elif stage == 3:
-            if mode == "0":
-                return textcolor.Color.finished_msg("完成") + "\n" + textcolor.Color.mode_select("新帳務檔案檔名為: ")
-            elif mode == "1":
-                return textcolor.Color.finished_msg("完成") + "\n" + textcolor.Color.mode_select("合併後檔案檔名為: ")
-    
-    # csv輸出
-    def Opt_new(self, data):
+    # 建立新檔案
+    def opt_new(self, data: pd.DataFrame) -> str:
         # 輸入檔名
-        path_opt_new = input(OnputFileCmd.Opt_msg(2, "0"))
+        path_opt_new = input(textcolor.Color.mode_select("請輸入欲新增的檔案名稱: "))
         # 確認副檔名
-        General.File_name_check(path_opt_new)
+        General.file_name_check(path_opt_new)
         # 輸出成檔案
         data.to_csv(path_opt_new , index = False)
         # 列印完成資訊
-        print(OnputFileCmd.Opt_msg(3, "0"))
+        print(textcolor.Color.finished_msg("完成"))
+        print(textcolor.Color.mode_select(f"新帳務檔案檔名為: {path_opt_new}"))
+        return path_opt_new
 
-    def Opt_rev(self, data):
+    # 修改舊檔案
+    def opt_rev(self, data: pd.DataFrame) -> str:
         # 輸入檔名
-        path_opt_new = input(OnputFileCmd.Opt_msg(2, "1"))
+        path_be_modify = input(textcolor.Color.mode_select("請輸入欲修改的檔案: "))
         # 確認副檔名
-        General.File_name_check(path_opt_new)
+        General.file_name_check(path_be_modify)
+        # 檔案不存在，使用 .opt_new 執行
+        if not General.file_exist(path_be_modify):
+            return self.opt_new(data)
+        # 載入舊檔案
+        data_old = pd.read_csv(path_be_modify)
+        # 合併舊資料和新資料
+        merged_data = pd.concat( [data_old, data] )
+        # 排序
+        merged_data.sort_values(by = ['date'], inplace = True)
+        # 寫回檔案
+        merged_data.to_csv(path_be_modify, index = False)
+        # 列印完成資訊
+        print(textcolor.Color.finished_msg("完成"))
+        print(textcolor.Color.finished_res(f"合併後檔案檔名為: {path_be_modify}"))
+        return path_be_modify
+    
+class Show_data(FileCmd):
+    def __init__(self):
+        self.start = None
+        self.end = None
+        self.data = None
+        self.data_for_opt = None
+
+    def whether_show(self, whether_show_mode):
+        # 不調取資料，直接結束程式
+        if whether_show_mode == "1":
+            sys.exit(textcolor.Color.finished_msg("程式結束"))
+
+    def time_bound(self, msg):
+        while True:
+            print(textcolor.Color.depiction("請輸入要調取的日期區間(格式:XXXX-XX-XX)"))
+            select_date = input(textcolor.Color.mode_select(msg))
+            # 日期標準化
+            select_date = General.reformat_date(select_date)
+            # 輸入異常
+            if select_date == np.nan:
+                print(textcolor.Color.warning("輸入值異常"))
+                continue
+            break
+        return select_date
+    
+    def time_check(self, start, end):
+        if start > end:
+            print(textcolor.Color.warning("開始日期大於結束日期"))
+            return False
+        return True
+        
+    def time_format(self, start, end):
+        start = datetime.datetime.strptime(start, "%Y-%m-%d")
+        end = datetime.datetime.strptime(end, "%Y-%m-%d")
+        return start, end
+    
+    def data_select(self, data, start, end):
+        
+
+        
+
+    
+    def show_data_main(self, select):
+        # 選擇日期區間與驗證
+        while True:
+            self.start = self.time_bound("開始日期: ")
+            self.end = self.time_bound("結束日期: ")
+            # 檢查日期是否輸入異常
+            if not self.time_check(self.start, self.end):
+                continue
+            # 將日期格式成 datetime 格式
+            self.start, self.end = self.time_format(self.start, self.end)
+            break
+        
