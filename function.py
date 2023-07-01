@@ -8,6 +8,7 @@ import sys
 import os
 import textcolor
 import datetime
+import opt_to_chart
 
 class General:
     # 日期格式化
@@ -43,6 +44,7 @@ class General:
     def file_name_check(name):
         if ".csv" not in name:
             name += ".csv"
+        return name
 
     # 檔案是否存在
     def file_exist(name):
@@ -63,7 +65,7 @@ class FileCmd:
                 break
             except ValueError:
                 print(textcolor.Color.warning("模式選擇異常"))
-                print(textcolor.Color.mode_select("請重新選擇模式: "))
+                mode = input(textcolor.Color.mode_select("請重新選擇模式: "))
         return cls(cmd_dict, valid_mode_selection)
     
     @staticmethod
@@ -78,7 +80,7 @@ class InputFileCmd(FileCmd):
     def ipt_csv(self) -> pd.DataFrame:
         path_ipt = input(textcolor.Color.mode_select("請輸入csv檔案名稱: "))
         # 副檔名確認
-        General.file_name_check(path_ipt)
+        path_ipt = General.file_name_check(path_ipt)
         # 檔名搜不到檔案
         if not General.file_exist(path_ipt):
             sys.exit(textcolor.Color.warning("無此檔案，本程式自動結束"))
@@ -122,13 +124,13 @@ class InputFileCmd(FileCmd):
 
         
 
-class OnputFileCmd(FileCmd):
+class OutputFileCmd(FileCmd):
     # 建立新檔案
     def opt_new(self, data: pd.DataFrame) -> str:
         # 輸入檔名
         path_opt_new = input(textcolor.Color.mode_select("請輸入欲新增的檔案名稱: "))
         # 確認副檔名
-        General.file_name_check(path_opt_new)
+        path_opt_new = General.file_name_check(path_opt_new)
         # 輸出成檔案
         data.to_csv(path_opt_new , index = False)
         # 列印完成資訊
@@ -141,7 +143,7 @@ class OnputFileCmd(FileCmd):
         # 輸入檔名
         path_be_modify = input(textcolor.Color.mode_select("請輸入欲修改的檔案: "))
         # 確認副檔名
-        General.file_name_check(path_be_modify)
+        path_be_modify = General.file_name_check(path_be_modify)
         # 檔案不存在，使用 .opt_new 執行
         if not General.file_exist(path_be_modify):
             return self.opt_new(data)
@@ -157,20 +159,23 @@ class OnputFileCmd(FileCmd):
         print(textcolor.Color.finished_msg("完成"))
         print(textcolor.Color.finished_res(f"合併後檔案檔名為: {path_be_modify}"))
         return path_be_modify
-    
+
+
 class Show_data(FileCmd):
-    def __init__(self):
+    def __init__(self, cmd_dict, mode):
         self.start = None
         self.end = None
         self.data = None
-        self.data_for_opt = None
+        self.data_for_show = None # 選定的 data item key
+        self.show_mode = None # 顯示模式
+        self.data_select = None
 
     def whether_show(self, whether_show_mode):
         # 不調取資料，直接結束程式
         if whether_show_mode == "1":
             sys.exit(textcolor.Color.finished_msg("程式結束"))
 
-    def time_bound(self, msg):
+    def time_input(self, msg):
         while True:
             print(textcolor.Color.depiction("請輸入要調取的日期區間(格式:XXXX-XX-XX)"))
             select_date = input(textcolor.Color.mode_select(msg))
@@ -194,21 +199,52 @@ class Show_data(FileCmd):
         end = datetime.datetime.strptime(end, "%Y-%m-%d")
         return start, end
     
-    def data_select(self, data, start, end):
-        
-
-        
-
-    
-    def show_data_main(self, select):
+    def time_bound(self):
         # 選擇日期區間與驗證
         while True:
-            self.start = self.time_bound("開始日期: ")
-            self.end = self.time_bound("結束日期: ")
+            self.start = self.time_input("開始日期: ")
+            self.end = self.time_input("結束日期: ")
             # 檢查日期是否輸入異常
             if not self.time_check(self.start, self.end):
                 continue
             # 將日期格式成 datetime 格式
             self.start, self.end = self.time_format(self.start, self.end)
             break
-        
+    
+    # 統計 items 重複之處並統計(將 item 相同的 amount 相加)，回傳統計資料
+    def filter_data(self):
+        num, date = "amount", "date"
+        # 移除 na
+        # 若選定日期排序需另外處裡
+        if self.data_select == date:
+            data_filtered = self.data[[num, date]].dropna(inplace = False)
+        else:
+            data_filtered = self.data[[self.data_select, num, date]].dropna(inplace = False)
+        # 日期格式轉換
+        data_filtered[date] = pd.to_datetime(data_filtered[date])
+        # 篩選日期 [中間為邏輯判斷]
+        data_filtered = data_filtered[(data_filtered[date] >= self.start) & (data_filtered[date] <= self.end)]
+        # 選出指定col
+        data_filtered = data_filtered[ [self.data_select, num] ]
+        # 若指定之 col 為 name 則不執行統計(加總)
+        if self.data_select == "name":
+            data_merged = data_filtered
+        # 非 name 進行加總
+        else:
+            data_merged = data_filtered.groupby(data_filtered[self.data_select]) \
+            .agg({self.data_select: 'first', num: 'sum'})
+        # 依(總)金額排序
+        data_merged.sort_values(by = [num], inplace = True, ascending = False)
+        # 此時 index 項目會跟 item 內容一樣，重置index
+        data_merged.reset_index(drop=True)
+        self.data_for_show = data_merged
+
+    # 呼叫副程式 opt_to_chart 將指定的 data(data_for_show) 轉成 Pie
+    def data_chart(self):
+        curr_header = self.data_select.capitalize()
+        opt_to_chart.pie_base(self.data_for_show.to_numpy(), curr_header)
+        print(textcolor.Color.finished_msg("完成"))
+
+    # 程式內輸出
+    def data_show_directly(self):
+        print(self.data_for_show)
