@@ -102,11 +102,11 @@ class InputFileCmd(FileCmd):
         # 限制選擇模式
         cmd_dict_ipt_sep = {"0", "1"}
         # 初始條件
-        con_ipt = "1"
+        con_ipt = "0"
         first_round = 1
 
-        while con_ipt != "0":
-            # 第一輪不執行
+        while con_ipt == "0":
+            # 第一輪不執行，詢問是否繼續
             if first_round != 1:
                 con_ipt = input(textcolor.Color.mode_select("是否要繼續輸入資料(是:0, 否:1): "))
             else:
@@ -115,6 +115,8 @@ class InputFileCmd(FileCmd):
             if con_ipt not in cmd_dict_ipt_sep:
                 print(textcolor.Color.warning("輸入異常"))
                 continue
+            elif con_ipt == "1":
+                break
             # 逐項詢問輸入
             for item in data_input.keys():
                 data_input[item].append(input(textcolor.Color.mode_select(f"請輸入 {item}: ")))
@@ -144,9 +146,13 @@ class OutputFileCmd(FileCmd):
         path_be_modify = input(textcolor.Color.mode_select("請輸入欲修改的檔案: "))
         # 確認副檔名
         path_be_modify = General.file_name_check(path_be_modify)
-        # 檔案不存在，使用 .opt_new 執行
+        # 檔案不存在(因不須再詢問一次，所以不使用 .opt_new 執行)
         if not General.file_exist(path_be_modify):
-            return self.opt_new(data)
+            print(textcolor.Color.warning("檔案不存在，自動新建"))
+            data.to_csv(path_be_modify , index = False)
+            # 列印完成資訊
+            print(textcolor.Color.finished_msg("完成"))
+            print(textcolor.Color.mode_select(f"新帳務檔案檔名為: {path_be_modify}"))
         # 載入舊檔案
         data_old = pd.read_csv(path_be_modify)
         # 合併舊資料和新資料
@@ -159,10 +165,15 @@ class OutputFileCmd(FileCmd):
         print(textcolor.Color.finished_msg("完成"))
         print(textcolor.Color.finished_res(f"合併後檔案檔名為: {path_be_modify}"))
         return path_be_modify
+    
+    def blank_opt(self, data: pd.DataFrame) -> None:
+        return None
 
 
 class Show_data(FileCmd):
     def __init__(self, cmd_dict, mode):
+        self.cmd_dict = cmd_dict
+        self.mode = mode
         self.start = None
         self.end = None
         self.data = None
@@ -247,4 +258,4 @@ class Show_data(FileCmd):
 
     # 程式內輸出
     def data_show_directly(self):
-        print(self.data_for_show)
+        print(self.data_for_show.reset_index(drop=True) )

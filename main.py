@@ -88,6 +88,7 @@ class Main_routine:
         self.select_ipt_mode = input(textcolor.Color.mode_select("請選擇 輸入 模式: "))
         # 建立obj
         self.ipt_data_obj = function.InputFileCmd.creat_obj(self.cmd_dict, self.select_ipt_mode)
+        self.select_ipt_mode = self.ipt_data_obj.mode
 
 
     # 輸入資料
@@ -116,8 +117,9 @@ class Main_routine:
             print(textcolor.Color.depiction(f"{self.cmd_dict[msg]}"))
         self.select_opt_mode = input(textcolor.Color.mode_select("請選擇 輸出 模式: "))
         # 建立obj
-        self.opt_data_obj = function.OutputFileCmd.creat_obj(self.cmd_dict, self.select_ipt_mode)
-    
+        self.opt_data_obj = function.OutputFileCmd.creat_obj(self.cmd_dict, self.select_opt_mode)
+        self.select_opt_mode = self.opt_data_obj.mode
+
 
     # 資料整併與存檔
     def save_data(self):
@@ -135,7 +137,7 @@ class Main_routine:
     # 可調取的資料僅限此次輸入資料
     def data_pretreatment(self):
         # 個別輸入的空值仍會撈到，重 Load 一次資料
-        if self.select_ipt_mode == "0":
+        if self.select_ipt_mode != "1":
             pass
         else:
             self.data = pd.read_csv(self.path_opt)
@@ -153,7 +155,9 @@ class Main_routine:
             for msg in self.cmd_dict:
                 print(textcolor.Color.depiction(f"{self.cmd_dict[msg]}"))
             whether_show_mode = input(textcolor.Color.mode_select("請選擇: "))
+        # 建立obj
         self.show_data_obj = function.Show_data.creat_obj(self.cmd_dict, whether_show_mode)
+        whether_show_mode = self.show_data_obj.mode
         # 是否結束程式
         self.show_data_obj.whether_show(whether_show_mode)
         self.show_data_obj.data = self.data
@@ -174,7 +178,9 @@ class Main_routine:
         self.show_data_selected = input(textcolor.Color.mode_select("請輸入選擇想呈現的資訊: "))
         if self.show_data_selected == "5":
             sys.exit(textcolor.Color.finished_msg("程式結束"))
+        # 建立obj
         self.show_data_selected_obj = function.FileCmd.creat_obj(self.cmd_dict, self.show_data_selected)
+        self.show_data_selected = self.show_data_selected_obj.mode
 
 
     # 選擇選定資料的顯示方式
@@ -184,7 +190,9 @@ class Main_routine:
         for msg in cmd_db.show_data_mode_msg():
             print(textcolor.Color.depiction(f"{self.cmd_dict[msg]}"))
         self.show_data_mode = input(textcolor.Color.mode_select("請輸入您的選擇(會依總金額排序): "))
+        # 建立obj
         self.show_data_mode_obj = function.FileCmd.creat_obj(self.cmd_dict, self.show_data_mode)
+        self.show_data_mode = self.show_data_mode_obj.mode
 
 
     # 整理顯示資料

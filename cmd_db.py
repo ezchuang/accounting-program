@@ -17,7 +17,7 @@ def opt_msg(mode):
         "0": "建立新的帳務檔案 請輸入 0",
         "1": "新增資料到既有檔案 請輸入 1 (請確保既有檔案有放入此資料夾中)",
     }
-    if mode == "1":
+    if mode == "0":
         cmd_dict["2"] = "不另行儲存，只調取資料 請輸入 2"
     return cmd_dict
 
@@ -27,8 +27,8 @@ def opt_run(obj, mode):
         "0" : obj.opt_new,
         "1" : obj.opt_rev,
     }
-    if mode == "1":
-        cmd_dict["2"] = "不另行儲存，只調取資料 請輸入 2"
+    if mode == "0":
+        cmd_dict["2"] = obj.blank_opt
     return cmd_dict
 
 def weather_show_data_msg():
